@@ -1,10 +1,10 @@
-from Passwords import *
+import Passwords
 
 DEVICE_BASE = {
 	'device_type' : 'cisco_ios',
-	'username' : USERNAME,
-	'password' : PASSWORD,
-	'secret' : SECRET,
+	'username' : Passwords.USERNAME,
+	'password' : Passwords.PASSWORD,
+	'secret' : Passwords.SECRET,
 }
 
 class Device(object):

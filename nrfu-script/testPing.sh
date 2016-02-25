@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 ping -o 10.255.255.1
 ping -o 10.255.255.2
 ping -o 10.255.255.3

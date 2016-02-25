@@ -13,4 +13,4 @@ mz = Device('MZ', '10.255.255.5', [ T111, T112, T113, ])
 idf1 = Device('IDF-1', '10.255.255.6', [ T111, T112, T113, ])
 server = Device('Server', '10.255.255.7', [ T111, T112, T114, ])
 
-labDevices = [ aggWan, cpe, core, div, mz, idf1, server, ]
+nrfuDevices = [ aggWan, cpe, core, div, mz, idf1, server, ]
