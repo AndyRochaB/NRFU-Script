@@ -13,3 +13,4 @@ README.txt
 *.txt
 *.pyc
 .DS_STORE
+*.sublime-*
