@@ -13,3 +13,6 @@ class Device(object):
 		self.sshParams = dict(DEVICE_BASE)
 		self.sshParams.update({ 'ip' : ip })
 		self.tests = tests
+
+	def __str__(self):
+		return "%s(%s): (%s)" % (self.name, self.sshParams['ip'], self.sshParams['device_type'])
