@@ -3,7 +3,9 @@
 from netmiko import ConnectHandler, NetMikoAuthenticationException, NetMikoTimeoutException
 from datetime import datetime
 from TestDevices import nrfuDevices
+from distutils.util import strtobool
 import multiprocessing
+import logging
 
 MAX_RETRIES = 3
 INVALID_COMMAND = "% Invalid input detected at '^' marker."
@@ -51,28 +53,28 @@ def runNRFU(device, multiprocessing = False, mpQueue = None):
 
 		net_connect.send_command('exit')
 
+		if multiprocessing:
+			mpQueue.put(None)
+
+		return None
+
 	except (NetMikoTimeoutException, NetMikoAuthenticationException) as ex:
 
-		print 'Warning!: ' + str(ex)
+		logging.warning(device.name + ': ' + str(ex))
 		
-		if mpQueue:
+		if multiprocessing:
 			mpQueue.put(device)
-		else:
-			return device
+
+		return device
 
 	except Exception as ex:
 
-		print str(ex)
+		logging.error(str(ex))
 
-		if mpQueue:
+		if multiprocessing:
 			mpQueue.put(device)
-		else:
-			return device
 
-	if mpQueue:
-		mpQueue.put(None)
-
-	return None
+		return device
 
 def main():
 
@@ -85,7 +87,6 @@ def main():
 	for tryN in range(0, MAX_RETRIES):
 		if not failedDevices:
 			print 'All tests finished!'
-			break
 		
 		else:
 			tempFailDevices = []
@@ -101,8 +102,8 @@ def main():
 	if failedDevices:
 		print 'The following devices failed:'
 		
-		for device in failedDevices:
-			print '\t* ' + device.name
+		for device in sorted(failedDevices):
+			print '\t* ' + str(device)
 
 def mainMultiProcess():
 
@@ -131,19 +132,14 @@ def mainMultiProcess():
 
 	failedDevices = filter(None, failedDevices)
 
-	mpQueue = multiprocessing.Queue()
-	processes = []
-
 	for tryN in range(0, MAX_RETRIES):
 		if not failedDevices:
 			print 'All tests finished!'
-			break
-		
 		else:
 			tempFailDevices = []
+			processes = []
+			mpQueue = multiprocessing.Queue()
 
-			print 'Trying again (' + str(tryN + 1) + ')'
-			
 			for device in failedDevices:
 
 				p = multiprocessing.Process(target = runNRFU, args = (device, True, mpQueue,))
@@ -151,19 +147,19 @@ def mainMultiProcess():
 				processes.append(p)
 				p.start()
 
-				for p in processes:
-					p.join()
+			for p in processes:
+				p.join()
 
-				for p in processes:
-					tempFailDevices.append(mpQueue.get())
+			for p in processes:
+				tempFailDevices.append(mpQueue.get())
 
-			failedDevices = failedDevices = filter(None, tempFailDevices)
+			failedDevices = filter(None, tempFailDevices)
 
 	if failedDevices:
 		print 'The following devices failed:'
 		
-		for device in failedDevices:
-			print '\t* ' + device.name
+		for device in sorted(failedDevices):
+			print '\t* ' + str(device)
 
 	print '-----------------------------------------------------------------'
 	print '|\t\t\t\t\t\t\t\t|'
@@ -171,8 +167,32 @@ def mainMultiProcess():
 	print '|\t\t\t\t\t\t\t\t|'
 	print '-----------------------------------------------------------------'
 
+def scriptMode():
+
+	print('Do you want to run the test on multiprocess mode? [yes/no]')
+	
+	while True:
+		try:
+			return strtobool(raw_input().lower())
+	
+		except ValueError:
+			print('Please respond with "yes" or "no".')
+	
+	return False
+
 if __name__ == '__main__':
 
-	# Comment or uncomment in order to activate 'single process' or 'multiprocess' mode
-	# main()
-	# mainMultiProcess()
+	logging.basicConfig(filename='./nrfu.log', level=logging.INFO, format='%(asctime)s  %(levelname)s: %(message)s')
+	logging.getLogger('paramiko').setLevel(logging.INFO)
+	logging.info('Script started')
+	
+	mode = scriptMode()
+
+	if mode:
+		print 'Running in multiprocess mode'
+		mainMultiProcess()
+	else:
+		print 'Running in single process mode'
+		main()
+
+	logging.info('Script endend')
