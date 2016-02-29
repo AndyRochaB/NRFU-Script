@@ -16,3 +16,8 @@ class Device(object):
 
 	def __str__(self):
 		return "%s(%s): (%s)" % (self.name, self.sshParams['ip'], self.sshParams['device_type'])
+
+	def __lt__(self, other):
+		 a = int(self.sshParams['ip'].split('.')[3])
+		 b = int(other.sshParams['ip'].split('.')[3])
+		 return a < b 
