@@ -6,18 +6,28 @@ from TestDevices import nrfuDevices
 from distutils.util import strtobool
 import multiprocessing
 import logging
+import os
 
 MAX_RETRIES = 3
 INVALID_COMMAND = "% Invalid input detected at '^' marker."
+DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'outputs')
+os.path.dirname(os.path.abspath(__file__)) 
+
+
+def createDir():
+
+	if not os.path.exists(DIR):
+		os.makedirs(DIR)
+	
 
 def runNRFU(device, multiprocessing = False, mpQueue = None):
 
 	try:
 
 		net_connect = ConnectHandler(**device.sshParams)
-		net_connect.enable()
+		net_connect.enable()	
 
-		file = open(device.name + '.txt', 'w')
+		file = open(os.path.join(DIR, device.name + '.txt'), 'w')
 		beginTime = str(datetime.now())
 
 		print ('Beginning tests for ' + device.name + ' at ' + beginTime)
@@ -185,6 +195,8 @@ if __name__ == '__main__':
 	logging.basicConfig(filename='./nrfu.log', level=logging.INFO, format='%(asctime)s  %(levelname)s: %(message)s')
 	logging.getLogger('paramiko').setLevel(logging.INFO)
 	logging.info('Script started')
+
+	createDir()
 	
 	mode = scriptMode()
 
